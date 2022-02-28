@@ -1,22 +1,22 @@
-from flask import Flask, request, make_response
-import uuid
+from flask import Flask, request
+
+from cloudevents.http import from_http
 
 app = Flask(__name__)
 
-@app.route('/', methods=['POST'])
-def event_response():
+@app.route("/", methods=["POST"])
+def route():
+    # create a CloudEvent
+    event = from_http(request.headers, request.get_data())
+    app.logger.warning(event)
 
-    app.logger.warning(request.data)
+    #You can access the fields id,source,type and specversion
+    #in the event array such as event['id']
 
-    # Respond with another event (optional)
-    response = make_response({
-        "msg": "Event response using Flask!"
-    })
-    response.headers["Ce-Id"] = str(uuid.uuid4())
-    response.headers["Ce-specversion"] = "0.3"
-    response.headers["Ce-Source"] = "knative/eventing/samples/hello-world"
-    response.headers["Ce-Type"] = "dev.knative.samples.hifromknative"
-    return response
+    #You can also call a serverless function with their URL
+    #see the client.py field for this
 
-if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    return "", 204
+
+if __name__ == "__main__":
+    app.run(debug=True, host='0.0.0.0',port=5000)
