@@ -28,7 +28,7 @@ def metrics():
     res = []
     res.append(prometheus_client.generate_latest(t))
     res.append(prometheus_client.generate_latest(h))
-    print({"processed":true},file=sys.stderr)
+    print({"processed":"done"},file=sys.stderr)
     return Response(res, mimetype="text/plain")
 
 if __name__ == '__main__':
