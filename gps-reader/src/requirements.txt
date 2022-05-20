@@ -1,0 +1,4 @@
+pyserial
+pynmea2
+geopy
+requests
