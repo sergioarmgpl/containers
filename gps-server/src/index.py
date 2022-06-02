@@ -61,7 +61,7 @@ def setStops(cid):
     data = request.json
     stops = data["stops"]
     for stop in stops:
-       r.geoadd(f"client:{cid}:stops",[float(stop["lng"]),float(stop["lat"]),stop["name"]],xx=True)
+       x = r.geoadd(f"client:{cid}:stops",[float(stop["lng"]),float(stop["lat"]),stop["name"]],ch=True)
     r.expire(f"client:{cid}:stops",3600*10)
     return jsonify({"setStops":"done"})
 
