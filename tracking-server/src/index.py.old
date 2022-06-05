@@ -36,17 +36,12 @@ def storePosition(cid):
     country = pytz.timezone(os.environ['TIMEZONE'])
     dtnow = datetime.now(country)
     dtxt,ts = convertUTC(dtnow)
-
-    utc_now = datetime.utcnow()
-    #print("utcnow",utc_now,utc_now.timestamp())
-    dtxt = str(utc_now).split(".")[0]
-    ts = int(utc_now.timestamp())
-
     #dtxt = str(dtnow).split(".")[0]
-    #ts = int(datetime.timestamp(dtnow)) 
-    #fmt = '%d-%m-%Y-%H:%M:%S' 
-    #utc_dt = pytz.utc.localize(datetime.utcfromtimestamp(ts)) 
-    #utc_dt.strftime(fmt) #ts = int(utc_dt.timestamp())
+    #ts = int(datetime.timestamp(dtnow))
+    #fmt = '%d-%m-%Y-%H:%M:%S'
+    #utc_dt = pytz.utc.localize(datetime.utcfromtimestamp(ts))
+    #utc_dt.strftime(fmt)
+    #ts = int(utc_dt.timestamp())
 
     collection = mongoCon()
     collection.insert_one({
@@ -54,24 +49,14 @@ def storePosition(cid):
     "ts":ts,"dtxt":dtxt})
     return jsonify({"client_id":cid,"positionStored":"done"})
 
-def getTimestamp(dtxt):
-    country = pytz.timezone(os.environ['TIMEZONE'])
-    dt = datetime.strptime(dtxt,"%d-%m-%y-%H:%M:%S")
-    dt = dt.replace(tzinfo=country)
-    dtxt = str(dt).split(".")[0]
-    return int(datetime.timestamp(dt))
-
-
 #dd-mm-yy-HH:MM:SS
 @app.route("/client/<cid>/positions/s/<sdate>/e/<edate>",methods=["GET"])
 def getPositions(cid,sdate,edate):
-#    st = datetime.strptime(sdate,"%d-%m-%y-%H:%M:%S")
-#    st = int(datetime.timestamp(st))
-#    et = datetime.strptime(edate,"%d-%m-%y-%H:%M:%S")
-#    et = int(datetime.timestamp(et))
+    st = datetime.strptime(sdate,"%d-%m-%y-%H:%M:%S")
+    st = int(datetime.timestamp(st))
+    et = datetime.strptime(edate,"%d-%m-%y-%H:%M:%S")
+    et = int(datetime.timestamp(et))
 
-    st = getTimestamp(sdate)
-    et = getTimestamp(edate)
 #    st = datetime.strptime(sdate,"%d-%m-%y-%H:%M:%S")
 #    st = int(datetime.timestamp(st))
 #    sdtxt,st = convertUTC(st)
