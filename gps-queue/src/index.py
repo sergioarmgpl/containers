@@ -5,17 +5,30 @@ import pynmea2
 import os
 import requests
 import sys
+import multiprocessing
+import traceback
+import json
 
-def redisCon():
-   rhost = os.environ['REDIS_HOST']
-   rauth = os.environ['REDIS_AUTH']
-   return redis.StrictRedis(host=rhost,\
-          port=6379,db=0,password=rauth,\
-          decode_responses=True)
+from flask import Flask, request
+from flask import jsonify
+from flask_cors import CORS
+import json
+from datetime import datetime
 
+queue = []
+traffic_events = []
+cid = "cid-"+str(int(datetime.timestamp(datetime.now())))
 device = os.environ['DEVICE']
-ser = serial.Serial(device, baudrate=9600, timeout=1.0)
-cid = os.environ['CLIENT_ID']
+ser = None
+
+while True:
+   try:
+      ser = serial.Serial(device, baudrate=9600, timeout=1.0)
+      print(os.environ['DEVICE']+" opened",file=sys.stderr)
+      break
+   except:
+      print("Couldn't open "+os.environ['DEVICE'],file=sys.stderr)
+      traceback.print_exc()
 
 while True:
    dataout = pynmea2.NMEAStreamReader()
@@ -28,15 +41,13 @@ while True:
          lng = newmsg.longitude
          if lat != 0 and lng != 0:
             data = {'lat': lat,'lng':lng,'cid':cid}
-            headers={"Content-Type":"application/json"}
-            r = requests.post(os.environ['ENDPOINT']
-              + f"/client/{cid}/position",json=data)
-            print(str(r),file=sys.stderr)
-            print(str(data),file=sys.stderr)
-            r = redisCon()
-            r.rpop("gps-queue",str(lat)+"|"+str(lng))
+            print(data,file=sys.stderr)
+            json_data = json.dumps(data) 
+            f = open("/tmp/gps", "w")
+            f.write(json_data)
+            f.close()
+            queue.append(data)
          else:
             print("Waiting for coordinates...",file=sys.stderr)
       except:
          print("No GPS data to send",file=sys.stderr)
-
