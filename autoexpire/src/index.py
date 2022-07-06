@@ -1,33 +1,21 @@
-from flask import Flask, request
-from flask import jsonify
-from flask_cors import CORS
-import requests
 import os
 import redis
-import json
 import sys
 import time
-  
 
-@app.route("/collector", methods=["GET"])
-def clean(unit,radius,lat,lng):
-    r = redisCon()
+rhost = os.environ['REDIS_HOST']
+rauth = os.environ['REDIS_AUTH']
+delay = int(os.environ['DELAY'])
+r = redis.StrictRedis(host=rhost,\
+          port=6379,db=0,password=rauth,\
+          decode_responses=True)
 
-    objects = r.geosearch("traffic",unit=unit,radius=float(radius),
-    longitude = lng,latitude=lat,sort="ASC")
-    data = []
+while True:
+    objects = r.zrange("traffic",0,-1)
     for obj in objects:
-        pos = r.geopos("traffic",obj)
-        data.append({"object":obj,"lat":pos[0][0],"lng":pos[0][1]})    
-
-
-    get keys zrange
-    not exits key delete from set
-
-    return jsonify({"getTrafficObjects":"done",
-    "objects":data
-    })
-
-
-if __name__ == '__main__':
-    autoexpire()
+        print(obj,file=sys.stderr)
+        print(r.exists(f"object:{obj}:data"),file=sys.stderr)
+        if not r.exists(f"object:{obj}:data"):
+            r.zrem("traffic",obj)
+            print({"deleted":obj},file=sys.stderr)
+    time.sleep(delay)
