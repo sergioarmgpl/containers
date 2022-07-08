@@ -14,7 +14,6 @@ CORS(app,origins=["*"])
 ttl_trf = int(os.environ["TTL_TRAFFIC"])
 ttl_obj = int(os.environ["TTL_OBJECT"])
 
-
 def redisCon():
    rhost = os.environ['REDIS_HOST']
    rauth = os.environ['REDIS_AUTH']
@@ -22,8 +21,25 @@ def redisCon():
           port=6379,db=0,password=rauth,\
           decode_responses=True)
 
-@app.route("/traffic", methods=["POST"])
-def setTrafficObject():
+@app.route("/traffic/1", methods=["POST"])
+def setBulkTrafficObjects():
+    global ttl_trf,ttl_obj
+    r = redisCon()
+    data = request.json
+    warnings = data["data"]
+    for w in warnings:
+        object_name = w["object"]+"-"+str(int(time.time()))
+        r.geoadd(f"traffic",[float(w["lng"]),float(w["lat"]),\
+        object_name],ch=True)
+        r.hset(f"object:{object_name}:data","type",w["object"])
+        r.hset(f"object:{object_name}:data","warning",w["warning"])
+        r.expire("traffic",ttl_trf)
+        r.expire(f"object:{object_name}:data",ttl_obj)
+    return jsonify({"setTrafficObject":"done"})
+
+@app.route("/traffic/2", methods=["POST"])
+def setSingleTrafficObject():
+    global ttl_trf,ttl_obj
     r = redisCon()
     data = request.json
     pos = data["position"]
