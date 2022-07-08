@@ -37,7 +37,7 @@ def syncTrafficEvents():
    headers={"Content-Type":"application/json"}
    print(traffic_events,file=sys.stderr)
    r = requests.post(os.environ['ENDPOINT']
-   + f"/traffic",json=
+   + f"/traffic/1",json=
    {
       "data":traffic_events
    })
