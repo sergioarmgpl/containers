@@ -29,18 +29,28 @@ def setBulkTrafficObjects():
     warnings = data["data"]
     for w in warnings:
         object_name = w["object"]+"-"+w["ts"]
-        print({"inserting":object_name},file=sys.stderr)
 
         similar = r.geosearch("traffic",unit="m",radius=5.0,
         longitude = float(w["lng"]),latitude=float(w["lat"]),sort="ASC")
+        print("similar",similar,file=sys.stderr)
+
+        n_similar = 0
+        for s_obj in similar:
+            o_type = r.hget(f"object:{s_obj}:data","type")
+            print(o_type,w["object"],o_type == w["object"],file=sys.stderr)
+            if o_type == w["object"]:
+                n_similar += 1
+                print("found similar",file=sys.stderr)
         
-        if len(similar) == 0:
+        if n_similar == 0:
             r.geoadd(f"traffic",[float(w["lng"]),float(w["lat"]),\
             object_name],ch=True)
             r.hset(f"object:{object_name}:data","type",w["object"])
             r.hset(f"object:{object_name}:data","warning",w["warning"])
             r.expire("traffic",ttl_trf)
             r.expire(f"object:{object_name}:data",ttl_obj)
+            print({"inserting":object_name},file=sys.stderr)
+        else:
             print({"found":"similar GPS coordinates"},file=sys.stderr)
     return jsonify({"setTrafficObject":"done"})
 
