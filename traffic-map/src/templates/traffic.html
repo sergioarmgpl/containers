@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Realtime location tracker</title>
+    <title>Realtime Traffic Warning Visualizer</title>
 
     <!-- leaflet css  -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
@@ -17,7 +17,7 @@
 </head>
 
 <body>
-    <center><h1>Geo Tracking</h1>
+    <center><h1>Traffic Events</h1>
     <div id="map"></div>
     </center>
 </body>
@@ -41,36 +41,91 @@ var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 }).addTo(map);
 //osm.addTo(map);
 setInterval(() => {
-    $.getJSON("http://{{ GPS_SERVER }}:3000/clients/positions/unit/km/r/0.1", function(pos) {
-        console.log(pos)
+
+    $.getJSON("http://{{ GPS_QUEUE }}:3001/gps", function(gps) {
+        console.log(gps)
+        data1 = gps.coordinate
+        console.log(data1)
+
         markers.forEach(function myFunction(item) {
-            item.remove();
+                item.remove();
         });
         markers.splice(0)
-        data = pos.clients
-        data.forEach(function myFunction(item) {
-            markPosition(item.cid,item.lat,item.lng,item.near)
+        marker = L.marker([data1.lat,data1.lng])
+        marker.addTo(map).bindPopup('My current position')
+        markers.push(marker)
+
+        $.getJSON("http://{{ TRAFFIC_MANAGER }}:3000/traffic/unit/km/r/0.5/lat/"
+        +data1.lat+"/lng/"+data1.lng, function(pos) {
+            console.log(pos)
+            data = pos.objects
+            data.forEach(function myFunction(item) {
+                markPosition(item.object,item.lat,item.lng,item.type,item.warning)
+            });
         });
+
     });
+    
+
 }, 5000);
 
 var marker;
 var markers = []
 
-function markPosition(cid,lat,lng,near)
+var carIcon = L.icon({
+    iconUrl: "{{ url_for('static', filename = 'car.png') }}",
+    iconSize:     [38, 95],
+    iconAnchor:   [22, 94],
+    popupAnchor:  [-3, -76]
+});
+
+var personIcon = L.icon({
+    iconUrl: "{{ url_for('static', filename = 'person.png') }}",
+    iconSize:     [38, 95],
+    iconAnchor:   [22, 94],
+    popupAnchor:  [-3, -76]
+});
+
+var personIcon = L.icon({
+    iconUrl: "{{ url_for('static', filename = 'semaphore.png') }}",
+    iconSize:     [38, 95],
+    iconAnchor:   [22, 94],
+    popupAnchor:  [-3, -76]
+});
+
+function markPosition(object,lat,lng,o_type,warning)
 {
-    let near_txt = ""
-    data = near
-    data.forEach(function myFunction(near_destiny) {
-        near_txt += near_destiny + "<br>"
-    });
-    near_txt = near_txt.slice(0, -4)
-    marker = L.marker([lat, lng])
+    var objectIcon=null;
+    if(o_type==="person")
+       objectIcon=personIcon;
+    else if((o_type==="car"))
+       objectIcon=carIcon;
+    else if((o_type==="semaphore"))
+       objectIcon=semaphoreIcon;
+
+    let warning_txt = "Watch out "+o_type+" close"
+    marker = L.marker([lat, lng],{icon: objectIcon})
     marker.addTo(map)
-    .bindPopup('<b>CID:</b> '+cid
+    .bindPopup('<b>ObjectId:</b> '+object
             +'<br><b>Latitude: </b>'+lat
             +'<br><b>Longitude: </b>'+lng
-            +'<br><b>NearTo: </b><br>'+near_txt)
+            +'<br><b>type: </b>'+o_type
+            +'<br><b>warning: '+warning_txt+'</b><br>'
+            )
+    markers.push(marker)
+}
+
+function markPositionX(object,lat,lng,o_type,warning)
+{
+    let warning_txt = "Watch out "+o_type+" close"
+    marker = L.marker([lat, lng])
+    marker.addTo(map)
+    .bindPopup('<b>ObjectId:</b> '+object
+            +'<br><b>Latitude: </b>'+lat
+            +'<br><b>Longitude: </b>'+lng
+            +'<br><b>type: </b>'+o_type
+            +'<br><b>warning: '+warning_txt+'</b><br>'
+            )
     markers.push(marker)
 }
 </script>

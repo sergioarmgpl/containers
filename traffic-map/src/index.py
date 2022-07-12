@@ -7,7 +7,8 @@ CORS(app,origins=["*"])
 
 @app.route("/")
 def map():
-   return render_template("traffic.html",GPS_SERVER=os.environ["GPS_SERVER"]
+   return render_template("traffic.html",GPS_QUEUE=os.environ["GPS_QUEUE"]
+                         ,TRAFFIC_MANAGER=os.environ["TRAFFIC_MANAGER"]
                          ,LATITUDE=os.environ["LATITUDE"]
                          ,LONGITUDE=os.environ["LONGITUDE"])
 

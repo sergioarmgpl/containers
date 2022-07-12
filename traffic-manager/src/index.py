@@ -70,7 +70,7 @@ def setSingleTrafficObject():
     r.expire(f"object:{object_name}:data",ttl_obj)
     return jsonify({"setTrafficObject":"done"})
 
-@app.route("/traffic/objects/unit/<unit>/r/<radius>/lat/<lat>/lng/<lng>", methods=["GET"])
+@app.route("/traffic/unit/<unit>/r/<radius>/lat/<lat>/lng/<lng>", methods=["GET"])
 def getTrafficObjects(unit,radius,lat,lng):
     r = redisCon()
 
@@ -81,10 +81,11 @@ def getTrafficObjects(unit,radius,lat,lng):
         pos = r.geopos("traffic",obj)
         #get warning and type metadata
         obj_data = r.hgetall(f"object:{obj}:data")
+        print(obj_data,file=sys.stderr)
         data.append({
-        "object":obj_data["type"]+"-"+obj_data["ts"],
-        "lat":pos[0][0],
-        "lng":pos[0][1],
+        "object":obj,
+        "lat":pos[0][1],
+        "lng":pos[0][0],
         "type":obj_data["type"],
         "warning":obj_data["warning"]
         })    

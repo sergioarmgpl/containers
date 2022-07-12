@@ -14,6 +14,15 @@ traffic_events = []
 app = Flask(__name__)
 CORS(app,origins=["*"])
 
+@app.route("/gps", methods=["GET"])
+def getGPSCoordinate():
+   f = open("/tmp/gps","r")
+   raw = f.readline()
+   coor = json.loads(raw)
+   f.close()
+   print(coor,file=sys.stderr)
+   return jsonify({"coordinate":coor,"getGPSCoordinate":"done"})
+
 @app.route("/traffic/event", methods=["POST"])
 def registerTrafficEvent():
    global queue,traffic_events,cid
@@ -43,7 +52,7 @@ def syncTrafficEvents():
        print("tf_tmp len",len(tf_tmp))
        if i+1 <= len(tf_tmp):
           for j in range(i+1,len(tf_tmp)):
-             if tf_tmp[i] != None:
+             if tf_tmp[i] != None and tf_tmp[j] != None:
                 print(f"tf_tmp[{i}]",tf_tmp[i])
                 print(f"tf_tmp[{j}]",tf_tmp[j])
                 print("----")
