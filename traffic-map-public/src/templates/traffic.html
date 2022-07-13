@@ -42,29 +42,35 @@ var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 //osm.addTo(map);
 setInterval(() => {
 
-    $.getJSON("http://{{ GPS_QUEUE }}:3001/gps", function(gps) {
-        console.log(gps)
-        data1 = gps.coordinate
-        console.log(data1)
+    function getLocation() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(processPosition);
+        } else { 
+            x.innerHTML = "Geolocation is not supported by this browser.";
+        }
+    }
+
+    function processPosition(position) {
+        var lat = position.coords.latitude
+        var lng = position.coords.longitude
 
         markers.forEach(function myFunction(item) {
                 item.remove();
         });
         markers.splice(0)
-        marker = L.marker([data1.lat,data1.lng])
+        marker = L.marker([lat,lng])
         marker.addTo(map).bindPopup('My current position')
         markers.push(marker)
 
         $.getJSON("http://{{ TRAFFIC_MANAGER }}:5000/traffic/unit/km/r/0.5/lat/"
-        +data1.lat+"/lng/"+data1.lng, function(pos) {
+        +lat+"/lng/"+lng, function(pos) {
             console.log(pos)
             data = pos.objects
             data.forEach(function myFunction(item) {
                 markPosition(item.object,item.lat,item.lng,item.type,item.warning)
             });
         });
-
-    });
+    }
     
 
 }, 5000);
