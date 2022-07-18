@@ -1,6 +1,2 @@
 pyserial
 pynmea2
-geopy
-requests
-flask
-flask_cors

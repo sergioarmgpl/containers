@@ -54,22 +54,6 @@ def setBulkTrafficObjects():
             print({"found":"similar GPS coordinates"},file=sys.stderr)
     return jsonify({"setTrafficObject":"done"})
 
-@app.route("/traffic/2", methods=["POST"])
-def setSingleTrafficObject():
-    global ttl_trf,ttl_obj
-    r = redisCon()
-    data = request.json
-    pos = data["position"]
-    object_name = w["object"]+"-"+w["ts"]
-    r.geoadd(f"traffic",[float(pos["lng"]),float(pos["lat"]),\
-    object_name],ch=True)
-    r.hset(f"object:{object_name}:data","type",data["object"])
-    r.hset(f"object:{object_name}:data","warning",data["warning"])
-    r.hset(f"object:{object_name}:data","ts",data["ts"])
-    r.expire("traffic",ttl_trf)
-    r.expire(f"object:{object_name}:data",ttl_obj)
-    return jsonify({"setTrafficObject":"done"})
-
 @app.route("/traffic/unit/<unit>/r/<radius>/lat/<lat>/lng/<lng>", methods=["GET"])
 def getTrafficObjects(unit,radius,lat,lng):
     r = redisCon()

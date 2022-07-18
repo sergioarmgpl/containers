@@ -8,7 +8,6 @@ import json
 from datetime import datetime
 from geopy import distance
 
-queue = []
 traffic_events = []
 
 app = Flask(__name__)
@@ -25,7 +24,7 @@ def getGPSCoordinate():
 
 @app.route("/traffic/event", methods=["POST"])
 def registerTrafficEvent():
-   global queue,traffic_events,cid
+   global traffic_events,cid
    f = open("/tmp/gps","r")
    raw = f.readline()
    coor = json.loads(raw)

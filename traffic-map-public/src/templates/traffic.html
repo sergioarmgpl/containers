@@ -42,36 +42,23 @@ var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 //osm.addTo(map);
 setInterval(() => {
 
-    function getLocation() {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(processPosition);
-        } else { 
-            x.innerHTML = "Geolocation is not supported by this browser.";
-        }
-    }
+    markers.forEach(function myFunction(item) {
+            item.remove();
+    });
+    markers.splice(0)
+    marker = L.marker([lat,lng])
+    marker.addTo(map).bindPopup('My current position')
+    markers.push(marker)
 
-    function processPosition(position) {
-        var lat = position.coords.latitude
-        var lng = position.coords.longitude
-
-        markers.forEach(function myFunction(item) {
-                item.remove();
+    
+    $.getJSON("http://{{ TRAFFIC_MANAGER }}:5000/traffic/unit/km/r/5/"+
+    "lat/{{ LATITUDE  }}/lng/{{ LONGITUDE }}", function(pos) {
+        console.log(pos)
+        data = pos.objects
+        data.forEach(function myFunction(item) {
+            markPosition(item.object,item.lat,item.lng,item.type,item.warning)
         });
-        markers.splice(0)
-        marker = L.marker([lat,lng])
-        marker.addTo(map).bindPopup('My current position')
-        markers.push(marker)
-
-        $.getJSON("http://{{ TRAFFIC_MANAGER }}:5000/traffic/unit/km/r/0.5/lat/"
-        +lat+"/lng/"+lng, function(pos) {
-            console.log(pos)
-            data = pos.objects
-            data.forEach(function myFunction(item) {
-                markPosition(item.object,item.lat,item.lng,item.type,item.warning)
-            });
-        });
-    }
-    getLocation()
+    });
 
 }, 5000);
 
@@ -85,12 +72,12 @@ var carIcon = L.icon({
 
 var personIcon = L.icon({
     iconUrl: "{{ url_for('static', filename = 'person.png') }}",
-    iconSize:     [30, 18]
+    iconSize:     [15, 18]
 });
 
 var truckIcon = L.icon({
     iconUrl: "{{ url_for('static', filename = 'truck.png') }}",
-    iconSize:     [15, 40]
+    iconSize:     [25, 15]
 });
 
 function markPosition(object,lat,lng,o_type,warning)
