@@ -3,7 +3,6 @@ import time
 import string
 import pynmea2
 import os
-import requests
 import sys
 import traceback
 import json
