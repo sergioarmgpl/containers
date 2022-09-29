@@ -55,7 +55,7 @@ setInterval(() => {
         marker.addTo(map).bindPopup('My current position')
         markers.push(marker)
 
-        $.getJSON("http://{{ TRAFFIC_MANAGER }}:5000/traffic/unit/km/r/0.5/lat/"
+        $.getJSON("http://{{ TRAFFIC_MANAGER }}:5001/traffic/unit/km/r/0.5/lat/"
         +data1.lat+"/lng/"+data1.lng, function(pos) {
             console.log(pos)
             data = pos.objects
